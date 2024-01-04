@@ -1,0 +1,75 @@
+local mypick = true
+local Debris = game:GetService("Debris")
+local Candies = script.Parent
+local Bloods = Candies.Blood
+local Candy = game:GetService("ServerStorage"):WaitForChild("Candies"):GetChildren()
+local p0 = Candies.Position
+local Di = Candies.ClickDetector.MaxActivationDistance
+
+function FindDirection(c, p1)
+	if not c:FindFirstChild("Humanoid") then return end
+	if (p0 - p1).Magnitude > Di then return end
+	return true
+end
+
+function FindProperty(c, p)
+	local Bv = c:FindFirstChild("Grab330")
+	local k = 1
+	local item = Candy[math.random(1,#Candy)]:Clone()
+	item.Parent = p.Backpack
+	if Bv then
+		if Bv.Value == true then
+			k = 3
+		elseif Bv.Value == false then
+			Bv.Value = true
+			k = 2
+		end
+	else
+		local NewBv = Instance.new("BoolValue", c)
+		NewBv.Name = "Grab330"
+	end
+	
+	return k
+end
+
+function cuthands(c, p)
+	if not c:FindFirstChild("RightHand") then return end
+	Candies.Cut:Play()
+	for _,j in ipairs(c:GetChildren()) do
+		if j.Name == "RightHand" or j.Name == "LeftHand" then
+			Debris:AddItem(j, 15)
+			j.Parent = workspace
+			j.CanCollide = true
+			for _,v in ipairs(j:GetChildren()) do
+				v:Destroy()
+			end
+			for _,v in ipairs(Bloods:GetChildren()) do
+				v:Clone().Parent = j
+				Debris:AddItem(v, 6)
+			end
+		elseif j.Name == "RightLowerArm" or j.Name == "LeftLowerArm" then
+			for _,v in ipairs(Bloods:GetChildren()) do
+				v:Clone().Parent = j
+			end
+		end
+	end
+	repeat
+		c:FindFirstChild("Humanoid").Health -= 10
+		task.wait(5)
+	until c:FindFirstChild("Humanoid").Health == 0
+end
+
+
+
+Candies.ClickDetector.MouseClick:Connect(function(p)
+if mypick == false then return end
+	local c = p.Character
+	local v = FindDirection(c, c:FindFirstChild("HumanoidRootPart").Position)
+	if v then
+		Candies.Grab:Play()
+		local k = FindProperty(c, p)
+		if k == 3 then
+			cuthands(c, p)
+		end
+	end
+end)
